@@ -1,0 +1,124 @@
+library(tidyverse)
+
+# Wald confidence interval for population proportion
+
+# Say if the population has two categeories, A, B.
+# Take a random sample of size n, the number of objects from A is a binomial random variable
+# When n is large, and p being reasonably far away from 0 or 1, 
+# it can be approximated by a normal distribution. 
+
+# We shall build a function that takes a sample size, proportion, alpha value, and returns the CI
+
+Wald_CI <- function(p_hat, sample_size, alpha){
+  z <- qnorm(1 - alpha/2)
+  n <- sample_size
+  
+  margin_of_error <- z * sqrt( (p_hat * (1 - p_hat) )/n)
+  CI <- c(p_hat - margin_of_error, p_hat + margin_of_error)
+  
+  return(CI)
+}
+
+# Example of using our function:
+Wald_CI(3/10, 1000, 0.05)
+
+# Now we investigate how the length of the interval changes w.r.t. the sample size
+p_hat = 0.5
+alpha = 0.05
+sample_sizes = seq(1, 100, 1)
+
+
+# # Option 1: while loop
+# CI_s <- data.frame(matrix(ncol = 3, nrow = 0))
+# colnames(CI_s) <- c("sample_size", "Lower", "Upper")
+# 
+# i = 1
+# while (i <= length(sample_sizes)) {
+#   sample_CI <- Wald_CI(p_hat, sample_sizes[i], alpha)
+#   CI_s[i,2:3] <- sample_CI
+#   i = i + 1
+# }
+# CI_s["sample_size"] <- sample_sizes
+
+
+# Option 2: Apply the function using sapply()
+CI_matrix <- t(sapply(sample_sizes, function(n) Wald_CI(p_hat, n, alpha)))
+# Convert the result into a data frame with appropriate column names
+Wald_CI_df <- data.frame(sample_size = sample_sizes, Lower = CI_matrix[, 1], Upper = CI_matrix[, 2])
+
+
+# Create a ggplot to visualize the confidence intervals
+Wald_CI_df %>% 
+  as_tibble() %>% 
+  ggplot(aes(x = sample_size)) +
+  geom_line(aes(y = Lower, color = "Lower CI")) +  # Plot lower CI
+  geom_line(aes(y = Upper, color = "Upper CI")) +  # Plot upper CI
+  labs(title = "Wald Confidence Intervals vs. Sample Size",
+       x = "Sample Size", 
+       y = "Confidence Interval Bounds",
+       color = "Interval")
+
+# # Base R plot version 
+# plot(CI_df$sample_size, CI_df$Lower, 
+#      col = "white", 
+#      ylim = c(min(CI_df$Lower), max(CI_df$Upper)),
+#      main = "Wald Confidence Intervals vs. Sample Size", 
+#      xlab = "Sample Size",
+#      ylab = "Confidence Interval Bounds")
+# lines(CI_df$sample_size, CI_df$Lower, col = "red")
+# lines(CI_df$sample_size, CI_df$Upper, col = "blue")
+
+
+
+# Now we look at the Wilson_CI
+Wilson_CI <- function(p_hat, sample_size, alpha) {
+  z <- qnorm(1 - alpha / 2)
+  n <- sample_size
+  
+  denominator <- 1 + (z^2 / n)
+  center_adjusted <- (p_hat + (z^2 / (2 * n))) / denominator
+  margin_adjusted <- z * sqrt((p_hat * (1 - p_hat) / n) + (z^2 / (4 * n^2))) / denominator
+  
+  CI <- c(center_adjusted - margin_adjusted, center_adjusted + margin_adjusted)
+  return(CI)
+}
+
+# Example of using our Wilson_CI function
+Wilson_CI(0.5, 1000, 0.05)
+
+# Interval size vs. sample size for Wilson CI:
+
+CI_matrix <- t(sapply(sample_sizes, function(n) Wilson_CI(p_hat, n, alpha)))
+# Convert the result into a data frame with appropriate column names
+Wilson_CI_df <- data.frame(sample_size = sample_sizes, Lower = CI_matrix[, 1], Upper = CI_matrix[, 2])
+
+# Create a ggplot to visualize the confidence intervals
+Wilson_CI_df %>% 
+  as_tibble() %>% 
+  ggplot(aes(x = sample_size)) +
+  geom_line(aes(y = Lower, color = "Lower CI")) +  # Plot lower CI
+  geom_line(aes(y = Upper, color = "Upper CI")) +  # Plot upper CI
+  labs(title = "Wilson Confidence Intervals vs. Sample Size",
+       x = "Sample Size", 
+       y = "Confidence Interval Bounds",
+       color = "Interval")
+
+
+
+# Now we combine both plots to compare Wald CI and Wilson CI
+Wald_CI_df$method <- "Wald"
+Wilson_CI_df$method <- "Wilson"
+CI_df <- rbind(Wald_CI_df, Wilson_CI_df) %>% 
+  as_tibble() %>%
+  pivot_longer(cols = c("Lower", "Upper"), 
+               names_to = "Bound_Type",
+               values_to = "Bound_Value")
+
+CI_df %>% 
+  ggplot(aes(x = sample_size, y = Bound_Value, color = Bound_Type, linetype = method)) +
+  geom_line() +
+  labs(title = "Wald and Wilson Confidence Intervals vs. Sample Size",
+       x = "Sample Size",
+       y = "Confidence Interval Bounds",
+       color = "Bound Type",
+       linetype = "Method")
