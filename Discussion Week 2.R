@@ -25,7 +25,7 @@ Wald_CI(3/10, 1000, 0.05)
 # Now we investigate how the length of the interval changes w.r.t. the sample size
 p_hat = 0.5
 alpha = 0.05
-sample_sizes = seq(1, 100, 1)
+sample_sizes = seq(10, 200, 1)
 
 
 # # Option 1: while loop
@@ -87,10 +87,10 @@ Wilson_CI <- function(p_hat, sample_size, alpha) {
 Wilson_CI(0.5, 1000, 0.05)
 
 # Interval size vs. sample size for Wilson CI:
-
 CI_matrix <- t(sapply(sample_sizes, function(n) Wilson_CI(p_hat, n, alpha)))
 # Convert the result into a data frame with appropriate column names
 Wilson_CI_df <- data.frame(sample_size = sample_sizes, Lower = CI_matrix[, 1], Upper = CI_matrix[, 2])
+
 
 # Create a ggplot to visualize the confidence intervals
 Wilson_CI_df %>% 
@@ -105,20 +105,53 @@ Wilson_CI_df %>%
 
 
 
+# Function to compute the "exact" CI using qbinom
+Exact_CI <- function(p_hat, sample_size, alpha = 0.05) {
+  lower_bound <- qbinom(alpha / 2, sample_size, p_hat) / sample_size
+  upper_bound <- qbinom(1 - alpha / 2, sample_size, p_hat) / sample_size
+  
+  # Adjust lower bound for the case when successes = 0
+  if (p_hat == 0) lower_bound <- 0
+  
+  # Adjust upper bound for the case when successes = sample_size
+  if (p_hat == 1) upper_bound <- 1
+  
+  return(c(lower_bound, upper_bound))
+}
+
+# Interval size vs. sample size for Wilson CI:
+CI_matrix <- t(sapply(sample_sizes, function(n) Exact_CI(p_hat, n, alpha)))
+# Convert the result into a data frame with appropriate column names
+Exact_CI_df <- data.frame(sample_size = sample_sizes, Lower = CI_matrix[, 1], Upper = CI_matrix[, 2])
+
+# Create a ggplot to visualize the confidence intervals
+Exact_CI_df %>% 
+  as_tibble() %>% 
+  ggplot(aes(x = sample_size)) +
+  geom_line(aes(y = Lower, color = "Lower CI")) +  # Plot lower CI
+  geom_line(aes(y = Upper, color = "Upper CI")) +  # Plot upper CI
+  labs(title = "Exact Confidence Intervals vs. Sample Size",
+       x = "Sample Size", 
+       y = "Confidence Interval Bounds",
+       color = "Interval")
+
+
 # Now we combine both plots to compare Wald CI and Wilson CI
 Wald_CI_df$method <- "Wald"
 Wilson_CI_df$method <- "Wilson"
-CI_df <- rbind(Wald_CI_df, Wilson_CI_df) %>% 
+Exact_CI_df$method <- "Exact"
+CI_df <- rbind(Wald_CI_df, Wilson_CI_df, Exact_CI_df) %>% 
   as_tibble() %>%
   pivot_longer(cols = c("Lower", "Upper"), 
                names_to = "Bound_Type",
                values_to = "Bound_Value")
 
 CI_df %>% 
-  ggplot(aes(x = sample_size, y = Bound_Value, color = Bound_Type, linetype = method)) +
+  ggplot(aes(x = sample_size, y = Bound_Value, linetype = Bound_Type, color = method)) +
   geom_line() +
   labs(title = "Wald and Wilson Confidence Intervals vs. Sample Size",
        x = "Sample Size",
        y = "Confidence Interval Bounds",
-       color = "Bound Type",
-       linetype = "Method")
+       color = "Method",
+       linetype = "Bound Type")
+
