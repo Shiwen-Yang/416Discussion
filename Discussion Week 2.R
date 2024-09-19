@@ -1,5 +1,16 @@
 library(tidyverse)
 
+theme_big <- function() {
+  theme(
+    plot.title = element_text(size = 50),   # Big title
+    axis.title.x = element_text(size = 40), # Big x-axis label
+    axis.title.y = element_text(size = 40), # Big y-axis label
+    axis.text.x = element_text(size = 35),  # Big x-axis text
+    axis.text.y = element_text(size = 35),  # Big y-axis text
+    legend.title = element_text(size = 40), # Big legend title
+    legend.text = element_text(size = 35)   # Big legend text
+  )
+}
 # Wald confidence interval for population proportion
 
 # Say if the population has two categeories, A, B.
@@ -31,7 +42,7 @@ sample_sizes = seq(10, 200, 1)
 # # Option 1: while loop
 # CI_s <- data.frame(matrix(ncol = 3, nrow = 0))
 # colnames(CI_s) <- c("sample_size", "Lower", "Upper")
-# 
+
 # i = 1
 # while (i <= length(sample_sizes)) {
 #   sample_CI <- Wald_CI(p_hat, sample_sizes[i], alpha)
@@ -56,17 +67,18 @@ Wald_CI_df %>%
   labs(title = "Wald Confidence Intervals vs. Sample Size",
        x = "Sample Size", 
        y = "Confidence Interval Bounds",
-       color = "Interval")
+       color = "Interval")+
+  theme_big()
 
 # # Base R plot version 
-# plot(CI_df$sample_size, CI_df$Lower, 
+# plot(Wald_CI_df$sample_size, Wald_CI_df$Lower, 
 #      col = "white", 
-#      ylim = c(min(CI_df$Lower), max(CI_df$Upper)),
+#      ylim = c(min(Wald_CI_df$Lower), max(Wald_CI_df$Upper)),
 #      main = "Wald Confidence Intervals vs. Sample Size", 
 #      xlab = "Sample Size",
 #      ylab = "Confidence Interval Bounds")
-# lines(CI_df$sample_size, CI_df$Lower, col = "red")
-# lines(CI_df$sample_size, CI_df$Upper, col = "blue")
+# lines(Wald_CI_df$sample_size, Wald_CI_df$Lower, col = "red")
+# lines(Wald_CI_df$sample_size, Wald_CI_df$Upper, col = "blue")
 
 
 
