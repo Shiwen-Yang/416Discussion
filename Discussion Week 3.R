@@ -1,7 +1,9 @@
 library(tidyverse)
 
+path = 
+
 # Some basic data manips in R
-CP <- read.csv("C:/Users/yangs/Downloads/Company_Payroll_8_24.csv") %>% as_tibble()
+CP <- read.csv(path) %>% as_tibble()
 
 # 1. Select rows of the df that satisfies certain criterion ---------------
 
@@ -12,6 +14,9 @@ CP %>%
 # Example 2: All employees whose age is under 32 or above 38
 CP %>%
   filter(Age < 32 | Age > 38)
+
+CP %>%
+  filter(Age > 32 & Age < 38)
 
 
 # 2. Select a subset of columns -------------------------------------------
@@ -113,8 +118,6 @@ CP %>%
 
 
 
-
-
 # Some suggestions regarding how to approach HW coding problems -----------
 
 # 1. Instead of coding "the process" of computing something, code the function instead
@@ -137,5 +140,24 @@ Z_stat <- function(X, H0) {
 } 
 Z_stat(CP$Hourly_Wage, 25)
 
-# Practice question: create the same thing, but for a chi-square statistic for variance instead
+# Practice question: create the same thing, but for a chi-square 
+# statistic for variance instead
 
+
+chi_square_stat <- function(X, H0) {
+  # this funciton computes the chi-square statistics for ...
+  # X is ...
+  # H0 is ...
+  # the function returns ...
+  
+  s <- var(X)
+  n <- length(X)
+  
+  chi_square <-
+    
+    p_val <- pchisq(chi_square) 
+  
+  result <- list("chi_square" = chi_square, "p_val" = p_val)
+  
+  return(result)
+}
