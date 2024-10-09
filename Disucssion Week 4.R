@@ -1,6 +1,5 @@
 library(dplyr)
 
-
 # ME 1 --------------------------------------------------------------------
 # 1. False, it gives very strong evidence, but it doesn't prove anything
 # 2. False, MC is used to estimate the distribution of the test stat
